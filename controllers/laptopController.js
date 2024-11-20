@@ -146,39 +146,54 @@ async function addNewLaptop(req, res) {
 async function reAssign(req, res) {
   const { empId, assignedTo, date, remark, accessories } = req.body;
   const { id } = req.params;
-  const prevUser = await Laptops.findById({ _id: id });
-  if (prevUser.assignedTo !== assignedTo) {
-    const laptop = await Laptops.findOneAndUpdate(
-      { _id: id },
-      {
-        $set: {
-          empId,
-          assignedTo,
-          date,
-          remark,
-          accessories,
-          history: [
-            ...prevUser.history,
-            {
-              empId: prevUser.empId,
-              assignedTo: prevUser.assignedTo,
-              fromDate: prevUser.date,
-              toDate: date,
-              accessories: prevUser.accessories,
-              laptopName: prevUser.laptopName,
-              systemId: prevUser.systemId,
-            },
-          ],
-        },
-      }
-    );
+
+  try {
+    const prevUser = await Laptops.findById({ _id: id });
+    if (prevUser.assignedTo !== assignedTo) {
+      await Laptops.findOneAndUpdate(
+        { _id: id },
+        {
+          $set: {
+            empId,
+            assignedTo,
+            date,
+            remark,
+            accessories: accessories.map((acc) => ({
+              name: acc.name,
+              id: acc.id,
+            })),
+            history: [
+              ...prevUser.history,
+              {
+                empId: prevUser.empId,
+                assignedTo: prevUser.assignedTo,
+                fromDate: prevUser.date,
+                toDate: date,
+                accessories: prevUser.accessories.map((acc) => ({
+                  name: acc.name,
+                  id: acc.id,
+                })),
+                laptopName: prevUser.laptopName,
+                systemId: prevUser.systemId,
+              },
+            ],
+          },
+        }
+      );
+    }
+
+    const finalData = await Laptops.find({});
+    res.status(200).json({
+      message: 'data updated successfully',
+      data: finalData,
+      prevUserDetails: prevUser,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Error updating laptop assignment',
+      error: error.message,
+    });
   }
-  const finalData = await Laptops.find({});
-  res.status(200).json({
-    message: 'data updated successfully',
-    data: finalData,
-    prevUserDetails: prevUser,
-  });
 }
 
 /**
