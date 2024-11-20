@@ -36,7 +36,7 @@ const laptopHistory = new mongoose.Schema({
   accessories: [
     {
       name: { type: String, required: true },
-      id: { type: String, required: true }
+      id: { type: String },
     },
   ],
 });
@@ -61,7 +61,7 @@ const laptopSchema = new mongoose.Schema({
   accessories: [
     {
       name: { type: String, required: true },
-      id: { type: String, required: true }
+      id: { type: String, required: true },
     },
   ],
   assignedTo: {
